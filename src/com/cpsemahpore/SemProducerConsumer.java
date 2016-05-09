@@ -20,7 +20,7 @@ public class SemProducerConsumer {
 	}
 
 }
-//class intermediate between Consumer and User
+//class intermediate between Consumer and Producer
 class Buffer<Object> {
 	private int max;
 	private int size = 0;
@@ -35,25 +35,26 @@ class Buffer<Object> {
 		empty = new Semaphore(0);
 		full = new Semaphore(max);
 	}
-	
+	//used on producer thread
 	public void put(Object x) {
-		try {
+		try {	//decrement counter from full list
 			full.acquire();
 		} catch (InterruptedException e) {
 		}
 		// synchronize update of buffer
 		lock.lock();
-		try {
+		try {	
 			buffer.add(x);
 			size++;
+			//value added on list increment it
 			empty.release();
 		} finally {
 			lock.unlock();
 		}
 	}
-
+	//used on consumer thread
 	public Object get() {
-		try {
+		try {	//removing item from buffer
 			empty.acquire();
 		} catch (InterruptedException e) {
 		}
@@ -63,6 +64,7 @@ class Buffer<Object> {
 			Object temp = buffer.get(0);
 			buffer.remove(0);
 			size--;
+			//increment for adding more on buffer
 			full.release();
 			return temp;
 		} finally {
